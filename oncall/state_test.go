@@ -750,4 +750,53 @@ func TestState_CalculateShifts(t *testing.T) {
 		},
 	)
 
+	t.Run("ReplaceOverrideMultipleShifts", func(t *testing.T) {
+		s := &state{
+			loc: time.UTC,
+			now: time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC),
+			rules: []ResolvedRule{
+				{Rule: rule.Rule{
+					WeekdayFilter: timeutil.WeekdayFilter{1, 1, 1, 1, 1, 1, 1},
+					Start:         timeutil.NewClock(9, 0),
+					End:           timeutil.NewClock(17, 0),
+					Target:        assignment.UserTarget("user-a"),
+				}},
+			},
+			overrides: []override.UserOverride{
+				{
+					AddUserID:    "user-b",
+					RemoveUserID: "user-a",
+					Start:        time.Date(2025, 1, 1, 9, 0, 0, 0, time.UTC),
+					End:          time.Date(2025, 1, 5, 17, 0, 0, 0, time.UTC),
+				},
+			},
+		}
+		
+		shifts := s.CalculateShifts(
+			time.Date(2025, 1, 1, 0, 0, 0, 0, time.UTC),
+			time.Date(2025, 1, 6, 0, 0, 0, 0, time.UTC),
+		)
+		
+		t.Logf("Total shifts: %d", len(shifts))
+		for i, shift := range shifts {
+			t.Logf("Shift %d: UserID=%s, Start=%s, End=%s, Truncated=%v",
+				i, shift.UserID, shift.Start, shift.End, shift.Truncated)
+		}
+		
+		var userBShifts []Shift
+		for _, shift := range shifts {
+			if shift.UserID == "user-b" {
+				userBShifts = append(userBShifts, shift)
+			}
+		}
+		
+		if len(userBShifts) != 5 {
+			t.Errorf("Expected 5 separate shifts for user-b, got %d", len(userBShifts))
+			if len(userBShifts) == 1 {
+				t.Errorf("Bug confirmed: user-b has one continuous shift from %s to %s instead of 5 separate shifts",
+					userBShifts[0].Start, userBShifts[0].End)
+			}
+		}
+	})
+
 }
