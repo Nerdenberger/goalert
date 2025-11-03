@@ -314,6 +314,10 @@ type CreateUserNotificationRuleInput struct {
 	UserID          *string `json:"userID,omitempty"`
 	ContactMethodID *string `json:"contactMethodID,omitempty"`
 	DelayMinutes    int     `json:"delayMinutes"`
+	// Optional conditions for filtering notifications based on alert metadata.
+	// Example: {"metadata": {"priority": {"min": 1, "max": 3}}}
+	// NULL means this rule matches all alerts.
+	Conditions *string `json:"conditions,omitempty"`
 }
 
 type CreateUserOverrideInput struct {

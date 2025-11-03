@@ -2654,6 +2654,7 @@ CREATE UNIQUE INDEX user_favorites_user_id_tgt_user_id_key ON public.user_favori
 
 
 CREATE TABLE user_notification_rules (
+	conditions jsonb,
 	contact_method_id uuid NOT NULL,
 	created_at timestamp with time zone DEFAULT now(),
 	delay_minutes integer DEFAULT 0 NOT NULL,
@@ -2666,6 +2667,7 @@ CREATE TABLE user_notification_rules (
 );
 
 CREATE INDEX idx_notif_rule_creation_time ON public.user_notification_rules USING btree (user_id, created_at);
+CREATE INDEX idx_notification_rule_conditions ON public.user_notification_rules USING gin (conditions);
 CREATE INDEX idx_notification_rule_users ON public.user_notification_rules USING btree (user_id);
 CREATE UNIQUE INDEX user_notification_rules_contact_method_id_delay_minutes_key ON public.user_notification_rules USING btree (contact_method_id, delay_minutes);
 CREATE UNIQUE INDEX user_notification_rules_pkey ON public.user_notification_rules USING btree (id);

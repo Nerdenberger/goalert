@@ -27,8 +27,8 @@ func NewStore(ctx context.Context, db *sql.DB) (*Store, error) {
 	p := prep.P
 	s := &Store{db: db}
 
-	s.insert = p("INSERT INTO user_notification_rules (id,user_id,delay_minutes,contact_method_id) VALUES ($1,$2,$3,$4)")
-	s.findAll = p("SELECT id,user_id,delay_minutes,contact_method_id FROM user_notification_rules WHERE user_id = $1")
+	s.insert = p("INSERT INTO user_notification_rules (id,user_id,delay_minutes,contact_method_id,conditions) VALUES ($1,$2,$3,$4,$5)")
+	s.findAll = p("SELECT id,user_id,delay_minutes,contact_method_id,conditions FROM user_notification_rules WHERE user_id = $1")
 	s.delete = p("DELETE FROM user_notification_rules WHERE id = any($1)")
 	s.lookupUserID = p("SELECT user_id FROM user_notification_rules WHERE id = any($1)")
 
@@ -56,7 +56,7 @@ func (s *Store) CreateTx(ctx context.Context, tx *sql.Tx, n *NotificationRule) (
 
 	n.ID = uuid.New().String()
 
-	_, err = wrapTx(ctx, tx, s.insert).ExecContext(ctx, n.ID, n.UserID, n.DelayMinutes, n.ContactMethodID)
+	_, err = wrapTx(ctx, tx, s.insert).ExecContext(ctx, n.ID, n.UserID, n.DelayMinutes, n.ContactMethodID, n.Conditions)
 	if err != nil {
 		return nil, err
 	}
@@ -138,7 +138,7 @@ func (s *Store) FindAll(ctx context.Context, userID string) ([]NotificationRule,
 	notificationrules := []NotificationRule{}
 	for rows.Next() {
 		var n NotificationRule
-		err = rows.Scan(&n.ID, &n.UserID, &n.DelayMinutes, &n.ContactMethodID)
+		err = rows.Scan(&n.ID, &n.UserID, &n.DelayMinutes, &n.ContactMethodID, &n.Conditions)
 		if err != nil {
 			return nil, err
 		}

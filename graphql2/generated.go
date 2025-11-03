@@ -861,6 +861,7 @@ type ComplexityRoot struct {
 	}
 
 	UserNotificationRule struct {
+		Conditions      func(childComplexity int) int
 		ContactMethod   func(childComplexity int) int
 		ContactMethodID func(childComplexity int) int
 		DelayMinutes    func(childComplexity int) int
@@ -4762,6 +4763,12 @@ func (e *executableSchema) Complexity(ctx context.Context, typeName, field strin
 
 		return e.complexity.UserContactMethod.Value(childComplexity), true
 
+	case "UserNotificationRule.conditions":
+		if e.complexity.UserNotificationRule.Conditions == nil {
+			break
+		}
+
+		return e.complexity.UserNotificationRule.Conditions(childComplexity), true
 	case "UserNotificationRule.contactMethod":
 		if e.complexity.UserNotificationRule.ContactMethod == nil {
 			break
@@ -15150,6 +15157,8 @@ func (ec *executionContext) fieldContext_Mutation_createUserNotificationRule(ctx
 				return ec.fieldContext_UserNotificationRule_contactMethodID(ctx, field)
 			case "contactMethod":
 				return ec.fieldContext_UserNotificationRule_contactMethod(ctx, field)
+			case "conditions":
+				return ec.fieldContext_UserNotificationRule_conditions(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type UserNotificationRule", field.Name)
 		},
@@ -23263,6 +23272,8 @@ func (ec *executionContext) fieldContext_User_notificationRules(_ context.Contex
 				return ec.fieldContext_UserNotificationRule_contactMethodID(ctx, field)
 			case "contactMethod":
 				return ec.fieldContext_UserNotificationRule_contactMethod(ctx, field)
+			case "conditions":
+				return ec.fieldContext_UserNotificationRule_conditions(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type UserNotificationRule", field.Name)
 		},
@@ -24476,6 +24487,35 @@ func (ec *executionContext) fieldContext_UserNotificationRule_contactMethod(_ co
 				return ec.fieldContext_UserContactMethod_statusUpdates(ctx, field)
 			}
 			return nil, fmt.Errorf("no field named %q was found under type UserContactMethod", field.Name)
+		},
+	}
+	return fc, nil
+}
+
+func (ec *executionContext) _UserNotificationRule_conditions(ctx context.Context, field graphql.CollectedField, obj *notificationrule.NotificationRule) (ret graphql.Marshaler) {
+	return graphql.ResolveField(
+		ctx,
+		ec.OperationContext,
+		field,
+		ec.fieldContext_UserNotificationRule_conditions,
+		func(ctx context.Context) (any, error) {
+			return obj.Conditions, nil
+		},
+		nil,
+		ec.marshalOString2ᚖstring,
+		true,
+		false,
+	)
+}
+
+func (ec *executionContext) fieldContext_UserNotificationRule_conditions(_ context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
+	fc = &graphql.FieldContext{
+		Object:     "UserNotificationRule",
+		Field:      field,
+		IsMethod:   false,
+		IsResolver: false,
+		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
+			return nil, errors.New("field of type String does not have child fields")
 		},
 	}
 	return fc, nil
@@ -27861,7 +27901,7 @@ func (ec *executionContext) unmarshalInputCreateUserNotificationRuleInput(ctx co
 		asMap[k] = v
 	}
 
-	fieldsInOrder := [...]string{"userID", "contactMethodID", "delayMinutes"}
+	fieldsInOrder := [...]string{"userID", "contactMethodID", "delayMinutes", "conditions"}
 	for _, k := range fieldsInOrder {
 		v, ok := asMap[k]
 		if !ok {
@@ -27889,6 +27929,13 @@ func (ec *executionContext) unmarshalInputCreateUserNotificationRuleInput(ctx co
 				return it, err
 			}
 			it.DelayMinutes = data
+		case "conditions":
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("conditions"))
+			data, err := ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+			it.Conditions = data
 		}
 	}
 
@@ -39832,6 +39879,8 @@ func (ec *executionContext) _UserNotificationRule(ctx context.Context, sel ast.S
 			}
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
+		case "conditions":
+			out.Values[i] = ec._UserNotificationRule_conditions(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

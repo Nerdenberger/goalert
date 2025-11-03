@@ -1353,6 +1353,7 @@ type UserFavorite struct {
 }
 
 type UserNotificationRule struct {
+	Conditions      pqtype.NullRawMessage
 	ContactMethodID uuid.UUID
 	CreatedAt       sql.NullTime
 	DelayMinutes    int32

@@ -26,7 +26,7 @@ func (db *DB) Name() string { return "Engine.NotificationCycleManager" }
 func NewDB(ctx context.Context, db *sql.DB, log *alertlog.Store) (*DB, error) {
 	lock, err := processinglock.NewLock(ctx, db, processinglock.Config{
 		Type:    processinglock.TypeNPCycle,
-		Version: 2,
+		Version: 3,
 	})
 	if err != nil {
 		return nil, err
@@ -97,13 +97,46 @@ func NewDB(ctx context.Context, db *sql.DB, log *alertlog.Store) (*DB, error) {
 				from process_cycles cycle
 				join alerts a on a.id = cycle.alert_id
 				join services svc on svc.id = a.service_id
+				left join alert_data ad on ad.alert_id = a.id
 				join user_notification_rules rule on
 					rule.user_id = cycle.user_id and
 					(
 						cycle.last_tick isnull or
 						concat(rule.delay_minutes,' minutes')::interval > (cycle.last_tick - cycle.started_at)
 					) and
-					concat(rule.delay_minutes,' minutes')::interval <= (now() - cycle.started_at)
+					concat(rule.delay_minutes,' minutes')::interval <= (now() - cycle.started_at) and
+					(
+						rule.conditions isnull or
+						(
+							rule.conditions->>'metadata' isnull or
+							(
+								-- Check if all metadata conditions match
+								(
+									-- For each key in conditions.metadata, check if it matches the alert metadata
+									select bool_and(
+										case
+											-- Handle min/max range conditions
+											when cond.value ? 'min' and cond.value ? 'max' then
+												(ad.metadata->>cond.key)::numeric >= (cond.value->>'min')::numeric and
+												(ad.metadata->>cond.key)::numeric <= (cond.value->>'max')::numeric
+											-- Handle min-only conditions
+											when cond.value ? 'min' then
+												(ad.metadata->>cond.key)::numeric >= (cond.value->>'min')::numeric
+											-- Handle max-only conditions
+											when cond.value ? 'max' then
+												(ad.metadata->>cond.key)::numeric <= (cond.value->>'max')::numeric
+											-- Handle equals conditions
+											when cond.value ? 'equals' then
+												ad.metadata->>cond.key = cond.value->>'equals'
+											-- Unknown condition type, skip
+											else true
+										end
+									)
+									from jsonb_each(rule.conditions->'metadata') as cond(key, value)
+								)
+							)
+						)
+					)
 				returning cycle_id
 			), no_first_notif_sent as (
 				select user_id, alert_id

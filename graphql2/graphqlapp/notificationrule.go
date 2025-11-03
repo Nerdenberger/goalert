@@ -33,6 +33,10 @@ func (m *Mutation) CreateUserNotificationRule(ctx context.Context, input graphql
 		nr.ContactMethodID = id
 	}
 
+	if input.Conditions != nil {
+		nr.Conditions = input.Conditions
+	}
+
 	err := withContextTx(ctx, m.DB, func(ctx context.Context, tx *sql.Tx) error {
 		var err error
 		nr, err = m.NRStore.CreateTx(ctx, tx, nr)

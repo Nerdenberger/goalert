@@ -337,6 +337,7 @@ export interface CreateUserInput {
 }
 
 export interface CreateUserNotificationRuleInput {
+  conditions?: null | string
   contactMethodID?: null | string
   delayMinutes: number
   userID?: null | string
@@ -1455,6 +1456,7 @@ export interface UserContactMethod {
 }
 
 export interface UserNotificationRule {
+  conditions?: null | string
   contactMethod?: null | UserContactMethod
   contactMethodID: string
   delayMinutes: number

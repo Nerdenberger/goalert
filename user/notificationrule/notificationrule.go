@@ -10,6 +10,7 @@ type NotificationRule struct {
 	UserID          string    `json:"-"`
 	DelayMinutes    int       `json:"delay"`
 	ContactMethodID uuid.UUID `json:"contact_method_id"`
+	Conditions      *string   `json:"conditions,omitempty"`
 }
 
 func validateDelay(d int) error {

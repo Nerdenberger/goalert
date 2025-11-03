@@ -1358,6 +1358,13 @@ type UserNotificationRule {
 
   contactMethodID: ID!
   contactMethod: UserContactMethod
+
+  """
+  Optional conditions for filtering notifications based on alert metadata.
+  Example: {"metadata": {"priority": {"min": 1, "max": 3}}}
+  NULL means this rule matches all alerts.
+  """
+  conditions: String
 }
 
 type OnCallOverview {
@@ -1447,6 +1454,13 @@ input CreateUserNotificationRuleInput {
   userID: ID
   contactMethodID: ID
   delayMinutes: Int!
+
+  """
+  Optional conditions for filtering notifications based on alert metadata.
+  Example: {"metadata": {"priority": {"min": 1, "max": 3}}}
+  NULL means this rule matches all alerts.
+  """
+  conditions: String
 }
 
 input UpdateUserContactMethodInput {
