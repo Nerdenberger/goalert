@@ -92,6 +92,91 @@ func sortShifts(s []Shift) {
 	})
 }
 
+func (s *state) splitReplaceOverrides(start, end time.Time) []override.UserOverride {
+	var result []override.UserOverride
+	
+	for _, o := range s.overrides {
+		if o.AddUserID == "" || o.RemoveUserID == "" {
+			result = append(result, o)
+			continue
+		}
+		
+		segments := s.calculateReplaceSegments(o, start, end)
+		result = append(result, segments...)
+	}
+	
+	return result
+}
+
+func (s *state) calculateReplaceSegments(o override.UserOverride, start, end time.Time) []override.UserOverride {
+	var segments []override.UserOverride
+	
+	overrideStart := o.Start
+	if overrideStart.Before(start) {
+		overrideStart = start
+	}
+	overrideEnd := o.End
+	if overrideEnd.After(end) {
+		overrideEnd = end
+	}
+	
+	currentTime := overrideStart.Truncate(time.Minute)
+	endTime := overrideEnd.Truncate(time.Minute)
+	
+	var segmentStart time.Time
+	inSegment := false
+	wasRemovedUserOnCall := false
+	
+	for currentTime.Before(endTime) || currentTime.Equal(endTime) {
+		removedUserOnCall := false
+		for _, rule := range s.rules {
+			if rule.UserID(currentTime) == o.RemoveUserID {
+				removedUserOnCall = true
+				break
+			}
+		}
+		
+		if removedUserOnCall && !inSegment {
+			if currentTime.Equal(overrideStart.Truncate(time.Minute)) {
+				segmentStart = o.Start
+			} else {
+				segmentStart = currentTime
+			}
+			inSegment = true
+		} else if !removedUserOnCall && inSegment {
+			segments = append(segments, override.UserOverride{
+				AddUserID:    o.AddUserID,
+				RemoveUserID: o.RemoveUserID,
+				Start:        segmentStart,
+				End:          currentTime,
+			})
+			inSegment = false
+		}
+		
+		wasRemovedUserOnCall = removedUserOnCall
+		currentTime = currentTime.Add(time.Minute)
+	}
+	
+	if inSegment {
+		endToUse := o.End
+		if !wasRemovedUserOnCall || !endToUse.Truncate(time.Minute).Equal(currentTime.Add(-time.Minute)) {
+			endToUse = currentTime
+		}
+		segments = append(segments, override.UserOverride{
+			AddUserID:    o.AddUserID,
+			RemoveUserID: o.RemoveUserID,
+			Start:        segmentStart,
+			End:          endToUse,
+		})
+	}
+	
+	if len(segments) == 0 {
+		segments = append(segments, o)
+	}
+	
+	return segments
+}
+
 func (s *state) CalculateShifts(start, end time.Time) []Shift {
 	start = start.Truncate(time.Minute)
 	end = end.Truncate(time.Minute)
@@ -115,9 +200,10 @@ func (s *state) CalculateShifts(start, end time.Time) []Shift {
 	}
 	hist.Init()
 	tempScheds := t.NewTemporaryScheduleCalculator(s.tempScheds)
-	// sort overrides so that overlapping spans are merged properly
-
-	overrides := t.NewOverrideCalculator(s.overrides)
+	
+	processedOverrides := s.splitReplaceOverrides(tiStart, end)
+	
+	overrides := t.NewOverrideCalculator(processedOverrides)
 	rules := t.NewRulesCalculator(s.loc, s.rules)
 
 	var shifts []Shift
