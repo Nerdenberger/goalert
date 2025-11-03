@@ -5009,17 +5009,23 @@ func (q *Queries) SchedMgrGetData(ctx context.Context, scheduleID uuid.UUID) (js
 
 const schedMgrInsertMessage = `-- name: SchedMgrInsertMessage :exec
 INSERT INTO outgoing_messages(id, message_type, channel_id, schedule_id)
-    VALUES ($1, 'schedule_on_call_notification', $2, $3)
+    VALUES ($1, $2, $3, $4)
 `
 
 type SchedMgrInsertMessageParams struct {
-	ID         uuid.UUID
-	ChannelID  uuid.NullUUID
-	ScheduleID uuid.NullUUID
+	ID          uuid.UUID
+	MessageType EnumOutgoingMessagesType
+	ChannelID   uuid.NullUUID
+	ScheduleID  uuid.NullUUID
 }
 
 func (q *Queries) SchedMgrInsertMessage(ctx context.Context, arg SchedMgrInsertMessageParams) error {
-	_, err := q.db.ExecContext(ctx, schedMgrInsertMessage, arg.ID, arg.ChannelID, arg.ScheduleID)
+	_, err := q.db.ExecContext(ctx, schedMgrInsertMessage,
+		arg.ID,
+		arg.MessageType,
+		arg.ChannelID,
+		arg.ScheduleID,
+	)
 	return err
 }
 

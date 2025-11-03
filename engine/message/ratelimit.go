@@ -22,12 +22,19 @@ func init() {
 		WithDestTypes(twilio.DestTypeTwilioVoice, twilio.DestTypeTwilioSMS, email.DestTypeEmail).
 		AddRules([]ThrottleRule{{Count: 1, Per: time.Minute}})
 
-	// On-Call Status Notifications
+	// On-Call Status Notifications (on-change)
 	perCM.
 		WithMsgTypes(notification.MessageTypeScheduleOnCallUsers).
 		AddRules([]ThrottleRule{
 			{Count: 3, Per: 1 * time.Minute},
 			{Count: 20, Per: 1 * time.Hour, Smooth: true},
+		})
+
+	// Time-Scheduled On-Call Notifications
+	perCM.
+		WithMsgTypes(notification.MessageTypeScheduleOnCallUsersTime).
+		AddRules([]ThrottleRule{
+			{Count: 60, Per: 1 * time.Minute},
 		})
 
 	// status notifications

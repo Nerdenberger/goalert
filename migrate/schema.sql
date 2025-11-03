@@ -122,6 +122,7 @@ CREATE TYPE enum_outgoing_messages_type AS ENUM (
 	'alert_status_update',
 	'alert_status_update_bundle',
 	'schedule_on_call_notification',
+	'schedule_on_call_notification_time',
 	'signal_message',
 	'test_notification',
 	'verification_message'

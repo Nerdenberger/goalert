@@ -494,14 +494,15 @@ func (ns NullEnumOutgoingMessagesStatus) Value() (driver.Value, error) {
 type EnumOutgoingMessagesType string
 
 const (
-	EnumOutgoingMessagesTypeAlertNotification          EnumOutgoingMessagesType = "alert_notification"
-	EnumOutgoingMessagesTypeAlertNotificationBundle    EnumOutgoingMessagesType = "alert_notification_bundle"
-	EnumOutgoingMessagesTypeAlertStatusUpdate          EnumOutgoingMessagesType = "alert_status_update"
-	EnumOutgoingMessagesTypeAlertStatusUpdateBundle    EnumOutgoingMessagesType = "alert_status_update_bundle"
-	EnumOutgoingMessagesTypeScheduleOnCallNotification EnumOutgoingMessagesType = "schedule_on_call_notification"
-	EnumOutgoingMessagesTypeSignalMessage              EnumOutgoingMessagesType = "signal_message"
-	EnumOutgoingMessagesTypeTestNotification           EnumOutgoingMessagesType = "test_notification"
-	EnumOutgoingMessagesTypeVerificationMessage        EnumOutgoingMessagesType = "verification_message"
+	EnumOutgoingMessagesTypeAlertNotification              EnumOutgoingMessagesType = "alert_notification"
+	EnumOutgoingMessagesTypeAlertNotificationBundle        EnumOutgoingMessagesType = "alert_notification_bundle"
+	EnumOutgoingMessagesTypeAlertStatusUpdate              EnumOutgoingMessagesType = "alert_status_update"
+	EnumOutgoingMessagesTypeAlertStatusUpdateBundle        EnumOutgoingMessagesType = "alert_status_update_bundle"
+	EnumOutgoingMessagesTypeScheduleOnCallNotification     EnumOutgoingMessagesType = "schedule_on_call_notification"
+	EnumOutgoingMessagesTypeScheduleOnCallNotificationTime EnumOutgoingMessagesType = "schedule_on_call_notification_time"
+	EnumOutgoingMessagesTypeSignalMessage                  EnumOutgoingMessagesType = "signal_message"
+	EnumOutgoingMessagesTypeTestNotification               EnumOutgoingMessagesType = "test_notification"
+	EnumOutgoingMessagesTypeVerificationMessage            EnumOutgoingMessagesType = "verification_message"
 )
 
 func (e *EnumOutgoingMessagesType) Scan(src interface{}) error {

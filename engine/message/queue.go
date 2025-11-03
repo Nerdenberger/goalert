@@ -14,7 +14,8 @@ var typePriority = map[gadb.EnumOutgoingMessagesType]int{
 	notification.MessageTypeVerification: 1,
 	notification.MessageTypeTest:         2,
 
-	notification.MessageTypeScheduleOnCallUsers: 3,
+	notification.MessageTypeScheduleOnCallUsers:     3,
+	notification.MessageTypeScheduleOnCallUsersTime: 3,
 
 	// First alert will jump the list with priority 0, so this only
 	// represents additional alerts to the service after the first.

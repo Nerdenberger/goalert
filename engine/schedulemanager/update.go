@@ -11,6 +11,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/target/goalert/gadb"
+	"github.com/target/goalert/notification"
 	"github.com/target/goalert/permission"
 	"github.com/target/goalert/schedule"
 	"github.com/target/goalert/schedule/rule"
@@ -217,15 +218,31 @@ updateLoop:
 
 		for chanID := range mapset.Elements(result.NotificationChannels) {
 			err = q.SchedMgrInsertMessage(ctx, gadb.SchedMgrInsertMessageParams{
-				ID:         uuid.New(),
-				ChannelID:  uuid.NullUUID{UUID: chanID, Valid: true},
-				ScheduleID: uuid.NullUUID{UUID: info.ScheduleID, Valid: true},
+				ID:          uuid.New(),
+				MessageType: notification.MessageTypeScheduleOnCallUsers,
+				ChannelID:   uuid.NullUUID{UUID: chanID, Valid: true},
+				ScheduleID:  uuid.NullUUID{UUID: info.ScheduleID, Valid: true},
 			})
 			if isScheduleDeleted(err) {
 				continue
 			}
 			if err != nil {
-				return errors.Wrapf(err, "insert notification message for channel %s on schedule %s", chanID, info.ScheduleID)
+				return errors.Wrapf(err, "insert on-change notification message for channel %s on schedule %s", chanID, info.ScheduleID)
+			}
+		}
+
+		for chanID := range mapset.Elements(result.TimeScheduledNotifChannels) {
+			err = q.SchedMgrInsertMessage(ctx, gadb.SchedMgrInsertMessageParams{
+				ID:          uuid.New(),
+				MessageType: notification.MessageTypeScheduleOnCallUsersTime,
+				ChannelID:   uuid.NullUUID{UUID: chanID, Valid: true},
+				ScheduleID:  uuid.NullUUID{UUID: info.ScheduleID, Valid: true},
+			})
+			if isScheduleDeleted(err) {
+				continue
+			}
+			if err != nil {
+				return errors.Wrapf(err, "insert time-scheduled notification message for channel %s on schedule %s", chanID, info.ScheduleID)
 			}
 		}
 	}

@@ -23,11 +23,12 @@ type updateInfo struct {
 }
 
 type updateResult struct {
-	ScheduleID           uuid.UUID
-	UsersToStart         mapset.Set[uuid.UUID]
-	UsersToStop          mapset.Set[uuid.UUID]
-	NewRawScheduleData   json.RawMessage       // no update necessary if nil
-	NotificationChannels mapset.Set[uuid.UUID] // channels to notify, empty if no notifications
+	ScheduleID                   uuid.UUID
+	UsersToStart                 mapset.Set[uuid.UUID]
+	UsersToStop                  mapset.Set[uuid.UUID]
+	NewRawScheduleData           json.RawMessage       // no update necessary if nil
+	NotificationChannels         mapset.Set[uuid.UUID] // channels to notify for on-change notifications
+	TimeScheduledNotifChannels   mapset.Set[uuid.UUID] // channels to notify for time-scheduled notifications
 }
 
 func (info updateInfo) calcLatestOnCall(now time.Time) mapset.Set[uuid.UUID] {
@@ -70,9 +71,10 @@ func (info updateInfo) calcUpdates(now time.Time) (*updateResult, error) {
 	result := updateResult{
 		ScheduleID: info.ScheduleID,
 		// since we do this in a single thread, we can use a thread-unsafe set and avoid the cost of locking
-		UsersToStart:         mapset.NewThreadUnsafeSet[uuid.UUID](),
-		UsersToStop:          mapset.NewThreadUnsafeSet[uuid.UUID](),
-		NotificationChannels: mapset.NewThreadUnsafeSet[uuid.UUID](),
+		UsersToStart:               mapset.NewThreadUnsafeSet[uuid.UUID](),
+		UsersToStop:                mapset.NewThreadUnsafeSet[uuid.UUID](),
+		NotificationChannels:       mapset.NewThreadUnsafeSet[uuid.UUID](),
+		TimeScheduledNotifChannels: mapset.NewThreadUnsafeSet[uuid.UUID](),
 	}
 	now = now.In(info.TimeZone)
 
@@ -95,7 +97,7 @@ func (info updateInfo) calcUpdates(now time.Time) (*updateResult, error) {
 			continue
 		}
 		if r.NextNotification != nil && !r.NextNotification.After(now) {
-			result.NotificationChannels.Add(r.ChannelID)
+			result.TimeScheduledNotifChannels.Add(r.ChannelID)
 		}
 		newTime := nextOnCallNotification(now, r)
 		if equalTimePtr(r.NextNotification, newTime) {

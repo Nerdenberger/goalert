@@ -110,5 +110,5 @@ WHERE
 
 -- name: SchedMgrInsertMessage :exec
 INSERT INTO outgoing_messages(id, message_type, channel_id, schedule_id)
-    VALUES ($1, 'schedule_on_call_notification', $2, $3);
+    VALUES ($1, $2, $3, $4);
 

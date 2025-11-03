@@ -20,5 +20,8 @@ const (
 	MessageTypeAlertStatusBundle   = gadb.EnumOutgoingMessagesTypeAlertStatusUpdateBundle
 	MessageTypeScheduleOnCallUsers = gadb.EnumOutgoingMessagesTypeScheduleOnCallNotification
 
+	// MessageTypeScheduleOnCallUsersTime is used for time-scheduled on-call notifications.
+	MessageTypeScheduleOnCallUsersTime = gadb.EnumOutgoingMessagesTypeScheduleOnCallNotificationTime
+
 	MessageTypeSignalMessage = gadb.EnumOutgoingMessagesTypeSignalMessage
 )
