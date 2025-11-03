@@ -294,9 +294,16 @@ func (s *Store) FindAll(ctx context.Context, dbtx gadb.DBTX, userID string) ([]C
 		return nil, err
 	}
 
-	err = permission.LimitCheckAny(ctx, permission.All)
+	err = permission.LimitCheckAny(ctx, permission.System, permission.Admin, permission.User)
 	if err != nil {
 		return nil, err
+	}
+
+	if !permission.System(ctx) && !permission.Admin(ctx) {
+		err = permission.LimitCheckAny(ctx, permission.MatchUser(userID))
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	rows, err := gadb.New(dbtx).ContactMethodFindAll(ctx, uid)
