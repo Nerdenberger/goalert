@@ -6,9 +6,11 @@ import (
 	"errors"
 
 	"github.com/target/goalert/config"
+	"github.com/target/goalert/gadb"
 	"github.com/target/goalert/graphql2"
 	"github.com/target/goalert/notification"
 	"github.com/target/goalert/notification/twilio"
+	"github.com/target/goalert/permission"
 	"github.com/target/goalert/user/contactmethod"
 	"github.com/target/goalert/validation"
 	"github.com/target/goalert/validation/validate"
@@ -27,7 +29,19 @@ func (a *ContactMethod) Type(ctx context.Context, obj *contactmethod.ContactMeth
 	return &cmType, nil
 }
 
+func (a *ContactMethod) Dest(ctx context.Context, obj *contactmethod.ContactMethod) (*gadb.DestV1, error) {
+	err := permission.LimitCheckAny(ctx, permission.Admin, permission.MatchUser(obj.UserID))
+	if err != nil {
+		return nil, nil
+	}
+	return &obj.Dest, nil
+}
+
 func (a *ContactMethod) Value(ctx context.Context, obj *contactmethod.ContactMethod) (string, error) {
+	err := permission.LimitCheckAny(ctx, permission.Admin, permission.MatchUser(obj.UserID))
+	if err != nil {
+		return "", nil
+	}
 	_, cmVal := CompatDestToCMTypeVal(obj.Dest)
 	return cmVal, nil
 }
@@ -54,6 +68,10 @@ func (a *ContactMethod) StatusUpdates(ctx context.Context, obj *contactmethod.Co
 }
 
 func (a *ContactMethod) FormattedValue(ctx context.Context, obj *contactmethod.ContactMethod) (string, error) {
+	err := permission.LimitCheckAny(ctx, permission.Admin, permission.MatchUser(obj.UserID))
+	if err != nil {
+		return "", nil
+	}
 	info, err := a.DestReg.DisplayInfo(ctx, obj.Dest)
 	if err != nil {
 		return "", err

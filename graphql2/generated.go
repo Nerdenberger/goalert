@@ -1145,6 +1145,7 @@ type UserCalendarSubscriptionResolver interface {
 }
 type UserContactMethodResolver interface {
 	Type(ctx context.Context, obj *contactmethod.ContactMethod) (*ContactMethodType, error)
+	Dest(ctx context.Context, obj *contactmethod.ContactMethod) (*gadb.DestV1, error)
 
 	Value(ctx context.Context, obj *contactmethod.ContactMethod) (string, error)
 	FormattedValue(ctx context.Context, obj *contactmethod.ContactMethod) (string, error)
@@ -24030,10 +24031,10 @@ func (ec *executionContext) _UserContactMethod_dest(ctx context.Context, field g
 		field,
 		ec.fieldContext_UserContactMethod_dest,
 		func(ctx context.Context) (any, error) {
-			return obj.Dest, nil
+			return ec.resolvers.UserContactMethod().Dest(ctx, obj)
 		},
 		nil,
-		ec.marshalNDestination2githubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1,
+		ec.marshalNDestination2ᚖgithubᚗcomᚋtargetᚋgoalertᚋgadbᚐDestV1,
 		true,
 		true,
 	)
@@ -24043,8 +24044,8 @@ func (ec *executionContext) fieldContext_UserContactMethod_dest(_ context.Contex
 	fc = &graphql.FieldContext{
 		Object:     "UserContactMethod",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "type":
@@ -39555,10 +39556,41 @@ func (ec *executionContext) _UserContactMethod(ctx context.Context, sel ast.Sele
 
 			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "dest":
-			out.Values[i] = ec._UserContactMethod_dest(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._UserContactMethod_dest(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "name":
 			out.Values[i] = ec._UserContactMethod_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {

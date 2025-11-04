@@ -22,6 +22,8 @@ models:
     fields:
       value:
         resolver: true
+      dest:
+        resolver: true
   UserNotificationRule:
     model: github.com/target/goalert/user/notificationrule.NotificationRule
   Target:
