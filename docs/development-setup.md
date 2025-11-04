@@ -7,7 +7,7 @@ This guide assumes you have the following commands installed and available in yo
 - `node` (>= 18)
 - `make`
 
-**Note**: While GoAlert requires Go 1.23 for development, starting from Go 1.21, Go will automatically download and use the correct toolchain version specified in the project (`go 1.23` in `go.mod`). Therefore, Go 1.21 is the minimum version you need to have installed, but the latest version is recommended.
+**Note**: While GoAlert requires Go 1.25 for development, starting from Go 1.21, Go will automatically download and use the correct toolchain version specified in the project (`go 1.25` in `go.mod`). Therefore, Go 1.21 is the minimum version you need to have installed, but the latest version is recommended.
 
 ## Quick Start
 
